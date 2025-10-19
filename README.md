@@ -42,7 +42,7 @@ Next up is the **Cookbook module**, which will let users:
 ## 🧠 Architecture
 
 This project follows a **Clean Architecture** structure for scalability and clarity:
-
+```
 TS.sln
 ├── TS.Engine # Core domain and abstractions
 │ ├── Abstractions/ # Interfaces for services (Auth, Lists)
