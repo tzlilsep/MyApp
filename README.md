@@ -43,3 +43,68 @@ Next up is the **Cookbook module**, which will let users:
 
 This project follows a **Clean Architecture** structure for scalability and clarity:
 
+TS.sln
+├── TS.Engine # Core domain and abstractions
+│ ├── Abstractions/ # Interfaces for services (Auth, Lists)
+│ ├── Contracts/ # DTOs (data transfer objects)
+│ └── Domain/ # Core entities (User, ShoppingList, Item)
+│
+├── TS.AWS # AWS service implementations
+│ ├── AwsAuthService.cs # Cognito login logic
+│ ├── AwsShoppingListService.cs # DynamoDB data access
+│ └── AwsClientsFactory.cs # AWS client setup
+│
+└── TS.UI # .NET MAUI cross-platform frontend
+├── AppPages/StartPages/ # Login, Home
+├── AppPages/ShoppingListApp/ # List view + editor
+├── AppPages/CookBookApp/ # Coming soon 🍲
+└── System/ # App setup & dependency injection
+
+---
+
+## 🧰 Tech Stack
+
+- **.NET 8 + MAUI**
+- **C#** for cross-platform logic  
+- **AWS Cognito** for user authentication  
+- **AWS DynamoDB** for cloud data storage  
+- **MVVM architecture** with dependency injection  
+- **XAML UI** with right-to-left (Hebrew) support
+
+---
+
+## 🧩 Why I Built It
+
+This project started as a **personal tool** —  
+I wanted a simple way to manage my recipes and shopping lists in one place.  
+It grew into a **real daily-use app** for me and my friends.
+
+I focused on:
+- 🧠 **Clean logic** – easy to expand and maintain  
+- 📲 **Practical usability** – designed for mobile-first experience  
+- ☁️ **Cloud-first mindset** – full AWS integration
+
+---
+
+## 🚀 Roadmap
+
+- [x] User login (Cognito)
+- [x] Shopping list creation
+- [ ] Cookbook screen + recipe storage
+- [ ] Add ingredients directly to shopping list
+- [ ] Publish on App Store (TestFlight stage)
+- [ ] Add dark mode customization
+
+---
+
+## 👨‍💻 Author
+
+**Tzlil Septon**  
+Full Stack .NET Developer  
+💡 Passionate about clean code, mobile apps, and cloud solutions.  
+📫 [LinkedIn](https://www.linkedin.com/in/tzlil-septon-a8218725a/)
+
+---
+
+> 🍲 *This app is designed to make cooking and home management easier —  
+> minimizing time and effort while enjoying delicious food.*
