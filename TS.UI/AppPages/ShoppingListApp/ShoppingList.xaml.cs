@@ -24,6 +24,14 @@ public partial class ShoppingList : ContentPage
 
     // Parameterless constructor for designer only (not for runtime use)
     public ShoppingList() : this(string.Empty, null!) { }
+
+    // Ensure previews are (re)loaded when page becomes visible
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        if (BindingContext is ShoppingListViewModel vm)
+            vm.OnPageAppearing(); // triggers preview load if still missing
+    }
 }
 
 /* Inverse boolean converter for XAML bindings */
@@ -74,24 +82,51 @@ public class ShoppingListItem : INotifyPropertyChanged
         set { if (_name != value) { _name = value; OnPropertyChanged(); } }
     }
 
+    // Items used by the edit screen
     public ObservableCollection<ChecklistItem> Items { get; } = new();
 
-    // Convenience properties for UI
-    public IEnumerable<ChecklistItem> FirstItems => Items.Take(5);
-    public bool IsEmpty => Items.Count == 0;
+    // Preview items used ONLY by the main grid (loaded lazily)
+    public ObservableCollection<ChecklistItem> PreviewItems { get; } = new();
+
+    // Preview source with safe fallback to Items when PreviewItems is empty
+    public IEnumerable<ChecklistItem> FirstItems =>
+        (PreviewItems.Count > 0 ? (IEnumerable<ChecklistItem>)PreviewItems : Items).Take(6);
+
+    // Consider both collections for empty state
+    public bool IsEmpty => Items.Count == 0 && PreviewItems.Count == 0;
+
+    // Set preview items without touching the editable Items collection
+    public void SetPreviewItems(IEnumerable<(string Text, bool IsChecked)> items)
+    {
+        PreviewItems.Clear();
+        foreach (var (text, isChecked) in items)
+            PreviewItems.Add(new ChecklistItem { Text = text, IsChecked = isChecked });
+
+        // Notify bindings to refresh preview visibility and content
+        OnPropertyChanged(nameof(FirstItems));
+        OnPropertyChanged(nameof(IsEmpty));
+    }
+
     public IEnumerable<int> Placeholders { get; } = Enumerable.Range(1, 5);
 
     public ShoppingListItem()
     {
-        // Recompute derived properties when the collection changes
+        // When editable items change (e.g., after returning from editor), recompute and refresh preview binding
         Items.CollectionChanged += (_, __) =>
+        {
+            OnPropertyChanged(nameof(IsEmpty));
+            OnPropertyChanged(nameof(FirstItems)); // ensure preview refreshes if PreviewItems is empty
+        };
+
+        // When preview items change (loaded on main screen), update bindings
+        PreviewItems.CollectionChanged += (_, __) =>
         {
             OnPropertyChanged(nameof(FirstItems));
             OnPropertyChanged(nameof(IsEmpty));
         };
     }
 
-    // Adds a new item to the list (UI-level only)
+    // Adds a new item to the editable list (used in editor)
     public void AddItem(string text)
     {
         if (!string.IsNullOrWhiteSpace(text))
@@ -118,6 +153,9 @@ public class ShoppingListViewModel : INotifyPropertyChanged
     public ICommand DeleteCommand { get; }
     public ICommand OpenListCommand { get; }
 
+    // Guard to avoid duplicate concurrent loads on Appearing
+    private bool _isLoadingPreviews;
+
     public ShoppingListViewModel(INavigation nav, string userId, IShoppingListService svc)
     {
         _nav = nav;
@@ -132,12 +170,21 @@ public class ShoppingListViewModel : INotifyPropertyChanged
         _ = LoadListsAsync();
     }
 
+    // Called by page.OnAppearing to ensure previews are present
+    public void OnPageAppearing()
+    {
+        // Only load previews if they are missing (no Items and no PreviewItems)
+        if (Lists.Any(l => l.PreviewItems.Count == 0 && l.Items.Count == 0))
+            _ = LoadPreviewsAsync();
+    }
+
     // Loads list headers from the service (cloud-backed)
     private async Task LoadListsAsync()
     {
         try
         {
             var lists = await _svc.GetListsAsync(_userId);
+
             MainThread.BeginInvokeOnMainThread(() =>
             {
                 Lists.Clear();
@@ -146,6 +193,9 @@ public class ShoppingListViewModel : INotifyPropertyChanged
 
                 _counter = Lists.Count; // Keep running counter for naming
             });
+
+            // Load previews after headers are on the UI
+            _ = LoadPreviewsAsync();
         }
         catch (Exception ex)
         {
@@ -153,12 +203,173 @@ public class ShoppingListViewModel : INotifyPropertyChanged
         }
     }
 
+    // Optional service interface for loading preview items
+    public interface IShoppingListPreviewService
+    {
+        Task<IEnumerable<(string Text, bool IsChecked)>> GetFirstItemsAsync(string userId, string listId, int take);
+    }
+
+    // Loads first N items for each list to show a preview on the main page
+    private async Task LoadPreviewsAsync()
+    {
+        if (_isLoadingPreviews) return;
+        _isLoadingPreviews = true; // guard
+
+        try
+        {
+            var snapshot = Lists.ToList();
+
+            foreach (var list in snapshot)
+            {
+                // Skip if already have any data (either Items or PreviewItems)
+                if (list.PreviewItems.Count > 0 || list.Items.Count > 0)
+                    continue;
+
+                IEnumerable<(string Text, bool IsChecked)> items = Array.Empty<(string, bool)>();
+
+                try
+                {
+                    items = await TryFetchPreviewAsync(_userId, list.ListId, take: 6);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"LoadPreviewsAsync list {list.ListId} failed: {ex.Message}");
+                    continue;
+                }
+
+                if (items.Any())
+                {
+                    MainThread.BeginInvokeOnMainThread(() =>
+                    {
+                        list.SetPreviewItems(items);
+                    });
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"LoadPreviewsAsync error: {ex.Message}");
+        }
+        finally
+        {
+            _isLoadingPreviews = false;
+        }
+    }
+
+    // Tries several service signatures to fetch initial preview items without requiring service changes
+    private async Task<IEnumerable<(string Text, bool IsChecked)>> TryFetchPreviewAsync(string userId, string listId, int take)
+    {
+        // 1) Preferred path: explicit preview interface
+        if (_svc is IShoppingListPreviewService previewSvc)
+            return await previewSvc.GetFirstItemsAsync(userId, listId, take);
+
+        var svcType = _svc.GetType();
+
+        // 2) GetFirstItemsAsync(userId, listId, take)
+        var mFirst = svcType.GetMethod("GetFirstItemsAsync", new[] { typeof(string), typeof(string), typeof(int) });
+        if (mFirst != null)
+        {
+            var result = mFirst.Invoke(_svc, new object[] { userId, listId, take });
+            return await ConvertResultAsync(result);
+        }
+
+        // 3) GetItemsAsync(userId, listId)  -> Take(take)
+        var mAll = svcType.GetMethod("GetItemsAsync", new[] { typeof(string), typeof(string) });
+        if (mAll != null)
+        {
+            var result = mAll.Invoke(_svc, new object[] { userId, listId });
+            var all = await ConvertResultAsync(result);
+            return all.Take(take);
+        }
+
+        // 4) LoadAsync(userId, listId) -> .Items -> Take(take)
+        var mLoad = svcType.GetMethod("LoadAsync", new[] { typeof(string), typeof(string) });
+        if (mLoad != null)
+        {
+            // call LoadAsync and await the Task
+            var taskObj = mLoad.Invoke(_svc, new object[] { userId, listId });
+            if (taskObj is Task t)
+            {
+                await t.ConfigureAwait(false);
+                var resProp = t.GetType().GetProperty("Result");
+                var dto = resProp?.GetValue(t);
+                if (dto != null)
+                {
+                    // read dto.Items by reflection (without referencing TS.Engine.Contracts)
+                    var itemsProp = dto.GetType().GetProperty("Items");
+                    var itemsObj = itemsProp?.GetValue(dto);
+                    // Reuse the converter to map to (Text, IsChecked)
+                    var mapped = await ConvertResultAsync(itemsObj);
+                    return mapped.Take(take);
+                }
+            }
+        }
+
+        // No usable method found -> return empty
+        return Enumerable.Empty<(string Text, bool IsChecked)>();
+    }
+
+
+    // Converts various possible return types to (Text, IsChecked)
+    private static async Task<IEnumerable<(string Text, bool IsChecked)>> ConvertResultAsync(object? result)
+    {
+        if (result is null) return Enumerable.Empty<(string, bool)>();
+
+        // Await Task if needed
+        if (result is Task task)
+        {
+            await task.ConfigureAwait(false);
+            var resProp = task.GetType().GetProperty("Result");
+            result = resProp?.GetValue(task);
+            if (result is null) return Enumerable.Empty<(string, bool)>();
+        }
+
+        if (result is System.Collections.IEnumerable seq)
+        {
+            var list = new List<(string Text, bool IsChecked)>();
+            foreach (var item in seq)
+            {
+                if (item is null) continue;
+                var t = item.GetType();
+
+                // Tuple (Text, IsChecked)
+                if (t.FullName?.StartsWith("System.ValueTuple") == true)
+                {
+                    var text = t.GetField("Item1")?.GetValue(item)?.ToString() ?? string.Empty;
+                    var isChecked = t.GetField("Item2")?.GetValue(item) as bool? ?? false;
+                    if (!string.IsNullOrWhiteSpace(text))
+                        list.Add((text, isChecked));
+                    continue;
+                }
+
+                // Object with Text/Title/Name and IsChecked/Done/Checked
+                string textVal =
+                    t.GetProperty("Text")?.GetValue(item)?.ToString() ??
+                    t.GetProperty("Title")?.GetValue(item)?.ToString() ??
+                    t.GetProperty("Name")?.GetValue(item)?.ToString() ??
+                    string.Empty;
+
+                bool isCheckedVal =
+                    t.GetProperty("IsChecked")?.GetValue(item) as bool? ??
+                    t.GetProperty("Checked")?.GetValue(item) as bool? ??
+                    t.GetProperty("Done")?.GetValue(item) as bool? ??
+                    false;
+
+                if (!string.IsNullOrWhiteSpace(textVal))
+                    list.Add((textVal, isCheckedVal));
+            }
+            return list;
+        }
+
+        return Enumerable.Empty<(string, bool)>();
+    }
+
     // Creates a new list and persists its header via the service
     private async Task AddListAsync()
     {
         _counter++;
         var listId = Guid.NewGuid().ToString("N").Substring(0, 8);
-        var name = $"רשימה חדשה {_counter}";
+        var name = $"רשימה חדשה";
 
         try
         {
