@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="TS.AppPages.ShoppingListApp.EditList"
+             Title="פרטי רשימה"
+             FlowDirection="RightToLeft"
+             NavigationPage.HasNavigationBar="True">
+
+    <!-- Top toolbar: back & save -->
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="חזור"
+                     Priority="0"
+                     Order="Primary"
+                     Clicked="OnBackClicked" />
+    </ContentPage.ToolbarItems>
+
+    <VerticalStackLayout Padding="16" Spacing="12">
+
+        <!-- List name -->
+        <Entry Text="{Binding Name}"
+               FontSize="20"
+               Placeholder="שם רשימה"
+               HorizontalOptions="Fill"
+               HorizontalTextAlignment="End"
+               VerticalOptions="Center"
+               FlowDirection="RightToLeft" />
+
+        <!-- Add item row -->
+        <Grid ColumnDefinitions="*,Auto">
+            <Entry x:Name="NewItemEntry"
+                   Placeholder="הוסף פריט..."
+                   FontSize="16" />
+            <Button Grid.Column="1"
+                    Text="הוסף"
+                    Clicked="OnAddItemClicked" />
+        </Grid>
+
+        <!-- Checklist -->
+        <CollectionView ItemsSource="{Binding Items}"
+                        SelectionMode="None">
+            <CollectionView.EmptyView>
+                <Label Text="אין פריטים עדיין" Opacity="0.6" />
+            </CollectionView.EmptyView>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <SwipeView>
+                        <!-- Swipe to delete -->
+                        <SwipeView.RightItems>
+                            <SwipeItems Mode="Reveal">
+                                <SwipeItem Text="מחק"
+                                           BackgroundColor="IndianRed"
+                                           CommandParameter="{Binding .}"
+                                           Invoked="OnDeleteSwipe" />
+                            </SwipeItems>
+                        </SwipeView.RightItems>
+
+                        <!-- RTL: checkbox on the right, text on the left -->
+                        <Grid ColumnDefinitions="Auto,*"
+                              Padding="8"
+                              FlowDirection="RightToLeft">
+                            <CheckBox IsChecked="{Binding IsChecked, Mode=TwoWay}"
+                                      VerticalOptions="Center" />
+                            <Entry Grid.Column="1"
+                                   Text="{Binding Text, Mode=TwoWay}"
+                                   FontSize="16"
+                                   Placeholder="פריט" />
+                        </Grid>
+                    </SwipeView>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </VerticalStackLayout>
+</ContentPage>

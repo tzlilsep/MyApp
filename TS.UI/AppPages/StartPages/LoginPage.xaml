@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="TS.AppPages.LoginPage"
+             Title=""
+             Padding="24"
+             FlowDirection="RightToLeft">
+
+    <!-- Simple login screen in Hebrew; comments in English -->
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="18">
+
+            <!-- App title -->
+            <Label Text="ברוכים הבאים"
+                   FontSize="28"
+                   FontAttributes="Bold"
+                   HorizontalTextAlignment="Center"
+                   Margin="0,8,0,0" />
+
+            <!-- Subtitle -->
+            <Label Text="נא הזינו שם משתמש וסיסמה"
+                   FontSize="16"
+                   HorizontalTextAlignment="Center"
+                   Opacity="0.7" />
+
+            <!-- Username field -->
+            <VerticalStackLayout Spacing="6">
+                <Entry x:Name="NameEntry"
+                       Placeholder="שם משתמש"
+                       ReturnType="Go"
+                       Completed="OnLoginClicked" />
+            </VerticalStackLayout>
+
+            <!-- Password field -->
+            <VerticalStackLayout Spacing="6">
+                <Entry x:Name="PasswordEntry"
+                       Placeholder="סיסמה"
+                       IsPassword="True"
+                       ReturnType="Go"
+                       Completed="OnLoginClicked" />
+            </VerticalStackLayout>
+
+            <!-- Login button -->
+            <Button x:Name="LoginButton"
+                    Text="היכנס"
+                    Clicked="OnLoginClicked"
+                    HeightRequest="48" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls"
+             xmlns:local="clr-namespace:TS.AppPages.ShoppingListApp"
+             x:Class="TS.AppPages.ShoppingListApp.ShoppingList"
+             x:Name="Page"
+             Title="רשימות קניות"
+             FlowDirection="RightToLeft">
+
+    <!-- Main shopping lists page with list cards and add button -->
+
+    <Grid>
+        <VerticalStackLayout Padding="16" Spacing="12">
+
+            <!-- Instruction label -->
+            <Label Text="לחץ על ＋ כדי ליצור רשימה. אם הרשימה ריקה יוצגו 5 שדות ריקים. לחיצה על כרטיס תפתח את העריכה."
+                   FontSize="14"
+                   Opacity="0.7"
+                   HorizontalTextAlignment="End"
+                   VerticalOptions="Center" />
+
+            <!-- List of shopping lists -->
+            <CollectionView ItemsSource="{Binding Lists}"
+                            SelectionMode="None"
+                            ItemSizingStrategy="MeasureAllItems">
+
+                <!-- Shown when there are no lists -->
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout Padding="24" Spacing="8"
+                                         HorizontalOptions="Center"
+                                         VerticalOptions="Center">
+                        <Label Text="אין רשימות עדיין" FontAttributes="Bold" />
+                        <Label Text="לחץ/י על ＋ כדי ליצור את הראשונה" />
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+
+                <!-- Template for each list card -->
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <SwipeView>
+
+                            <!-- Swipe-to-delete -->
+                            <SwipeView.RightItems>
+                                <SwipeItems Mode="Reveal">
+                                    <SwipeItem Text="מחק"
+                                               BackgroundColor="IndianRed"
+                                               Command="{Binding BindingContext.DeleteCommand, Source={x:Reference Page}}"
+                                               CommandParameter="{Binding .}" />
+                                </SwipeItems>
+                            </SwipeView.RightItems>
+
+                            <!-- List card -->
+                            <Border Stroke="{AppThemeBinding Light=#E0E0E0, Dark=#333333}"
+                                    StrokeThickness="1"
+                                    Padding="12"
+                                    BackgroundColor="{AppThemeBinding Light=#F7F7F7, Dark=#262626}"
+                                    Margin="0,6">
+                                <Border.StrokeShape>
+                                    <shapes:RoundRectangle CornerRadius="12" />
+                                </Border.StrokeShape>
+
+                                <Grid>
+                                    <!-- Tap opens list editor -->
+                                    <Grid.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding BindingContext.OpenListCommand, Source={x:Reference Page}}"
+                                                              CommandParameter="{Binding .}" />
+                                    </Grid.GestureRecognizers>
+
+                                    <VerticalStackLayout Spacing="8">
+                                        <!-- List name -->
+                                        <Label Text="{Binding Name}"
+                                               FontSize="18"
+                                               HorizontalTextAlignment="End"
+                                               VerticalOptions="Center" />
+
+                                        <!-- Up to 5 items (visible if not empty) -->
+                                        <VerticalStackLayout Spacing="4"
+                                                             IsVisible="{Binding IsEmpty, Converter={x:Static local:BoolInverseConverter.Instance}}"
+                                                             BindableLayout.ItemsSource="{Binding FirstItems}">
+                                            <BindableLayout.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid ColumnDefinitions="Auto,*"
+                                                          FlowDirection="RightToLeft"
+                                                          Padding="2,0">
+                                                        <CheckBox IsChecked="{Binding IsChecked}"
+                                                                  IsEnabled="False"
+                                                                  VerticalOptions="Center" />
+                                                        <Label Grid.Column="1"
+                                                               Text="{Binding Text}"
+                                                               FontSize="14"
+                                                               TextColor="{AppThemeBinding Light=#444, Dark=#DDD}"
+                                                               HorizontalTextAlignment="End"
+                                                               VerticalOptions="Center" />
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </BindableLayout.ItemTemplate>
+                                        </VerticalStackLayout>
+
+                                        <!-- Placeholder rows when empty -->
+                                        <VerticalStackLayout Spacing="4"
+                                                             IsVisible="{Binding IsEmpty}"
+                                                             BindableLayout.ItemsSource="{Binding Placeholders}">
+                                            <BindableLayout.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Border Padding="8"
+                                                            BackgroundColor="Transparent"
+                                                            Stroke="{AppThemeBinding Light=#E0E0E0, Dark=#333333}"
+                                                            StrokeThickness="1">
+                                                        <Border.StrokeShape>
+                                                            <shapes:RoundRectangle CornerRadius="8" />
+                                                        </Border.StrokeShape>
+                                                        <Label Text="פריט..."
+                                                               FontSize="14"
+                                                               Opacity="0.6"
+                                                               HorizontalTextAlignment="End"
+                                                               VerticalOptions="Center" />
+                                                    </Border>
+                                                </DataTemplate>
+                                            </BindableLayout.ItemTemplate>
+                                        </VerticalStackLayout>
+                                    </VerticalStackLayout>
+                                </Grid>
+                            </Border>
+                        </SwipeView>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </VerticalStackLayout>
+
+        <!-- Floating add (+) button -->
+        <Grid Padding="16"
+              HorizontalOptions="End"
+              VerticalOptions="End">
+            <Button Text="+"
+                    WidthRequest="70"
+                    HeightRequest="70"
+                    FontSize="36"
+                    CornerRadius="35"
+                    Command="{Binding AddListCommand}"
+                    BackgroundColor="{AppThemeBinding Light=#3EB489, Dark=#2E7D32}"
+                    Shadow="5,5,5,Grey"
+                    TextColor="White"
+                    SemanticProperties.Hint="הוסף רשימה חדשה" />
+        </Grid>
+    </Grid>
+</ContentPage>
