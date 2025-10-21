@@ -4,7 +4,7 @@ using Amazon.CognitoIdentityProvider.Model;
 using Amazon.Runtime;
 using TS.Engine.Abstractions;
 
-namespace TS.AWS
+namespace TS.AWS.Auth
 {
     // Implements IAuthService using Amazon Cognito (USER_PASSWORD_AUTH).
     // Handles login and returns UserId + IdToken only.

@@ -2,11 +2,15 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls"
-             xmlns:local="clr-namespace:TS.AppPages.ShoppingListApp"
+             xmlns:conv="clr-namespace:TS.AppPages.ShoppingListApp"
              x:Class="TS.AppPages.ShoppingListApp.ShoppingList"
              x:Name="Page"
              Title="רשימות קניות"
              FlowDirection="RightToLeft">
+
+    <ContentPage.Resources>
+        <x:Static x:Key="BoolInverseConverter" Member="conv:ShoppingList+BoolInverseConverter.Instance" />
+    </ContentPage.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -15,7 +19,6 @@
         </Grid.RowDefinitions>
 
         <VerticalStackLayout Grid.Row="0" Padding="7" Spacing="5">
-
         </VerticalStackLayout>
 
         <ScrollView Grid.Row="1" Padding="12,0,12,88">
@@ -42,7 +45,6 @@
                                     </SwipeItems>
                                 </SwipeView.LeftItems>
 
-                              
                                 <Border Stroke="{AppThemeBinding Light=#E0E0E0, Dark=#333333}"
                                         StrokeThickness="1"
                                         Padding="10"
@@ -73,7 +75,7 @@
                                         <ContentView Grid.Row="1" HeightRequest="90" Clip="True">
                                             <Grid>
                                                 <VerticalStackLayout Spacing="2"
-                                                                     IsVisible="{Binding IsEmpty, Converter={x:Static local:BoolInverseConverter.Instance}}"
+                                                                     IsVisible="{Binding IsEmpty, Converter={StaticResource BoolInverseConverter}}"
                                                                      BindableLayout.ItemsSource="{Binding FirstItems}">
                                                     <BindableLayout.ItemTemplate>
                                                         <DataTemplate>
@@ -81,9 +83,7 @@
                                                                   FlowDirection="RightToLeft"
                                                                   Padding="0"
                                                                   ColumnSpacing="6"
-                                                                  HeightRequest="20"
-                                                                  >
-                                                              
+                                                                  HeightRequest="20">
                                                                 <Label Grid.Column="0"
                                                                        Text="{Binding Text}"
                                                                        FontSize="14"

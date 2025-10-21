@@ -2,8 +2,9 @@
 using Amazon.DynamoDBv2;
 using Amazon.CognitoIdentity;
 using Amazon.Runtime;
+using TS.AWS.Auth;
 
-namespace TS.AWS
+namespace TS.AWS.Factories
 {
     public static class AwsClientsFactory
     {

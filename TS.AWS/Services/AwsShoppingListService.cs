@@ -1,9 +1,10 @@
 ﻿using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
+using TS.AWS.Factories;
 using TS.Engine.Abstractions;
 using TS.Engine.Contracts;
 
-namespace TS.AWS;
+namespace TS.AWS.Services;
 
 public sealed class AwsShoppingListService : IShoppingListService
 {
@@ -15,9 +16,11 @@ public sealed class AwsShoppingListService : IShoppingListService
         _ddb = AwsClientsFactory.CreateDynamoDbFromIdToken(idToken);
     }
 
-    public async Task<IReadOnlyList<(string ListId, string Name)>> GetListsAsync(string userId)
+    // Returns list headers with up to 'take' items per list
+    public async Task<IReadOnlyList<ShoppingListDto>> GetListsAsync(string userId, int take)
     {
-        var resp = await _ddb.QueryAsync(new QueryRequest
+        // 1) Fetch all list headers
+        var headersResp = await _ddb.QueryAsync(new QueryRequest
         {
             TableName = TableName,
             KeyConditionExpression = "PK = :pk AND begins_with(SK, :sk)",
@@ -28,19 +31,63 @@ public sealed class AwsShoppingListService : IShoppingListService
             }
         });
 
-        // Filter only "List" items and map to (ListId, Name)
-        return resp.Items
+        var headers = headersResp.Items
             .Where(i => i.TryGetValue("Type", out var t) && t.S == "List")
-            .Select(i => (
-                ListId: i["SK"].S.Replace("LIST#", string.Empty),
-                Name: i.TryGetValue("ListName", out var n) ? n.S : "רשימה"
-            ))
+            .Select(i => new
+            {
+                ListId = i["SK"].S.Replace("LIST#", string.Empty),
+                Name = i.TryGetValue("ListName", out var n) ? n.S : "רשימה"
+            })
             .ToList();
+
+        // 2) For each list, fetch up to 'take' items (ordered by SK)
+        var results = new List<ShoppingListDto>(headers.Count);
+
+        foreach (var h in headers)
+        {
+            var items = new List<ItemDto>();
+
+            if (take > 0)
+            {
+                var itemsResp = await _ddb.QueryAsync(new QueryRequest
+                {
+                    TableName = TableName,
+                    KeyConditionExpression = "PK = :pk AND begins_with(SK, :sk)",
+                    ExpressionAttributeValues = new()
+                    {
+                        [":pk"] = new($"USER#{userId}"),
+                        [":sk"] = new($"LIST#{h.ListId}#ITEM#")
+                    },
+                    // 'Text' is reserved in expressions; alias it via ExpressionAttributeNames
+                    ExpressionAttributeNames = new()
+                    {
+                        ["#T"] = "Text",
+                        ["#C"] = "IsChecked"
+                    },
+                    ProjectionExpression = "#T, #C",
+                    Limit = take,
+                    ScanIndexForward = true // ascending by SK: ITEM#0000, ITEM#0001, ...
+                });
+
+                foreach (var av in itemsResp.Items)
+                {
+                    var text = av.TryGetValue("Text", out var txt) ? txt.S : "";
+                    var isChecked = av.TryGetValue("IsChecked", out var chk) && (chk.BOOL ?? false);
+                    if (!string.IsNullOrWhiteSpace(text))
+                        items.Add(new ItemDto(text, isChecked));
+                }
+            }
+
+            results.Add(new ShoppingListDto(userId, h.ListId, h.Name, items));
+        }
+
+
+        return results;
     }
 
     public async Task CreateListAsync(string userId, string listId, string name)
     {
-        // Conditional put to avoid overwriting existing list (PK+SK must not exist)
+        // Conditional put to avoid overwriting an existing list
         await _ddb.PutItemAsync(new PutItemRequest
         {
             TableName = TableName,
@@ -58,7 +105,7 @@ public sealed class AwsShoppingListService : IShoppingListService
 
     public async Task DeleteListAsync(string userId, string listId)
     {
-        // Delete all rows with SK starting with LIST#{listId} (header + items)
+        // Delete all rows under the list (header + items)
         var q = await _ddb.QueryAsync(new QueryRequest
         {
             TableName = TableName,
@@ -71,7 +118,6 @@ public sealed class AwsShoppingListService : IShoppingListService
             ProjectionExpression = "PK, SK"
         });
 
-        // BatchWrite limit is 25 requests per call
         var batch = new List<WriteRequest>();
         foreach (var it in q.Items)
         {
@@ -91,8 +137,7 @@ public sealed class AwsShoppingListService : IShoppingListService
             await _ddb.BatchWriteItemAsync(new BatchWriteItemRequest { RequestItems = new() { [TableName] = batch } });
     }
 
-    public Task ShoppingListExistsOrThrow(string userId, string listId) => Task.CompletedTask; // reserved for future use
-
+    // Loads a single list with all items
     public async Task<ShoppingListDto> LoadAsync(string userId, string listId)
     {
         var resp = await _ddb.QueryAsync(new QueryRequest
@@ -114,7 +159,9 @@ public sealed class AwsShoppingListService : IShoppingListService
             if (!av.TryGetValue("Type", out var t)) continue;
 
             if (t.S == "List")
+            {
                 name = av.TryGetValue("ListName", out var n) ? n.S : name;
+            }
             else if (t.S == "ListItem")
             {
                 var text = av.TryGetValue("Text", out var txt) ? txt.S : "";
@@ -129,7 +176,7 @@ public sealed class AwsShoppingListService : IShoppingListService
 
     public async Task SaveAsync(ShoppingListDto list)
     {
-        // Remove all current items (ITEM#) to rewrite fresh state
+        // Delete existing items for this list
         var existing = await _ddb.QueryAsync(new QueryRequest
         {
             TableName = TableName,
@@ -166,7 +213,7 @@ public sealed class AwsShoppingListService : IShoppingListService
             }
         });
 
-        // Write items (ordered keys via index, zero-padded)
+        // Insert items with ordered SK (zero-padded index)
         var puts = new List<WriteRequest>();
         for (int i = 0; i < list.Items.Count; i++)
         {
@@ -192,7 +239,7 @@ public sealed class AwsShoppingListService : IShoppingListService
             await _ddb.BatchWriteItemAsync(new BatchWriteItemRequest { RequestItems = new() { [TableName] = puts } });
     }
 
-    // Small helper to split sequences into batches (e.g., for BatchWrite 25 limit)
+    // Utility: chunk a sequence into batches
     private static IEnumerable<List<T>> Chunk<T>(IEnumerable<T> src, int size)
     {
         var buf = new List<T>(size);

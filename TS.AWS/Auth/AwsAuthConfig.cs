@@ -1,4 +1,4 @@
-﻿namespace TS.AWS
+﻿namespace TS.AWS.Auth
 {
     public static class AwsAuthConfig
     {

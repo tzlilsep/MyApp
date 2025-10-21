@@ -1,8 +1,9 @@
 ﻿using TS.Engine.Abstractions;
+using TS.AWS.Services;
 
-namespace TS.AWS
+
+namespace TS.AWS.Factories
 {
-    // Factory that creates AwsShoppingListService instances using the given IdToken
     public sealed class AwsShoppingListServiceFactory : IShoppingListServiceFactory
     {
         public IShoppingListService Create(string idToken)

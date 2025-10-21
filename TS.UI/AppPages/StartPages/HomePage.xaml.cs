@@ -23,7 +23,7 @@ public partial class HomePage : ContentPage
     private async void OnMiniApp1Clicked(object sender, EventArgs e)
     {
         // Navigates to the Cookbook page (recipes app)
-        await Navigation.PushAsync(new Cookbook(_userId, _idToken));
+        await Navigation.PushAsync(new TS.UI.AppPages.CookBookApp.Pages.Cookbook(_userId, _idToken));
     }
 
     // Handle click on the second mini app (Shopping List)

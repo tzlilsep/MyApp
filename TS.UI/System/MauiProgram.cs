@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 using TS.Engine.Abstractions;
-using TS.AWS;
+using TS.AWS.Auth;
+using TS.AWS.Factories;
+using TS.AppPages;
 
 namespace TS.UI.System
 {
@@ -21,7 +23,7 @@ namespace TS.UI.System
             // Dependency Injection setup
             builder.Services.AddSingleton<IAuthService, AwsAuthService>(); // Auth service
             builder.Services.AddSingleton<IShoppingListServiceFactory, AwsShoppingListServiceFactory>(); // Shopping list factory
-            builder.Services.AddTransient<AppPages.LoginPage>(); // Login page
+            builder.Services.AddTransient<LoginPage>(); // Login page
 
             #if DEBUG
             builder.Logging.AddDebug(); // Enable debug logging

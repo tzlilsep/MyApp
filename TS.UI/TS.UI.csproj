@@ -80,5 +80,10 @@
 		<ProjectReference Include="..\TS.Engine\TS.Engine.csproj" />
 		<ProjectReference Include="..\TS.AWS\TS.AWS.csproj" />
 	</ItemGroup>
+	<ItemGroup>
+	  <MauiXaml Update="AppPages\CookbookApp\Pages\Cookbook.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	</ItemGroup>
 
 </Project>

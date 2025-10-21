@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="TS.AppPages.ShoppingListApp.EditList"
+             x:Class="TS.AppPages.ShoppingListApp.Pages.EditList"
+             x:Name="EditListPage"
              Title=""
              FlowDirection="RightToLeft"
              NavigationPage.HasNavigationBar="True">
@@ -9,17 +10,15 @@
     <VerticalStackLayout Padding="16" Spacing="12">
 
         <!-- List name -->
-         <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" VerticalOptions="Center">
-             
+        <Grid ColumnDefinitions="Auto,*" ColumnSpacing="8" VerticalOptions="Center">
             <Label Text="שם הרשימה:"
                    FontSize="18"
                    VerticalOptions="Center"
                    FontAttributes="Bold"
-                   
                    HorizontalOptions="Start"
                    TextColor="{AppThemeBinding Light=#000, Dark=#FFF}" />
             <Entry Grid.Column="1"
-                   Text="{Binding Name}"
+                   Text="{Binding ListItem.Name, Mode=TwoWay}"
                    FontSize="18"
                    Placeholder="שם רשימה"
                    HorizontalOptions="FillAndExpand"
@@ -28,19 +27,18 @@
                    FlowDirection="RightToLeft" />
         </Grid>
 
-
         <!-- Add item row -->
         <Grid ColumnDefinitions="*,Auto">
-            <Entry x:Name="NewItemEntry"
-                   Placeholder="הוסף פריט..."
-                   FontSize="16" />
+            <Entry Placeholder="הוסף פריט..."
+                   FontSize="16"
+                   Text="{Binding NewItemText, Mode=TwoWay}" />
             <Button Grid.Column="1"
                     Text="הוסף"
-                    Clicked="OnAddItemClicked" />
+                    Command="{Binding AddItemCommand}" />
         </Grid>
 
         <!-- Checklist -->
-        <CollectionView ItemsSource="{Binding Items}"
+        <CollectionView ItemsSource="{Binding ListItem.Items}"
                         SelectionMode="None">
             <CollectionView.EmptyView>
                 <Label Text="אין פריטים עדיין" Opacity="0.6" />
@@ -54,8 +52,8 @@
                             <SwipeItems Mode="Reveal">
                                 <SwipeItem Text="מחק"
                                            BackgroundColor="IndianRed"
-                                           CommandParameter="{Binding .}"
-                                           Invoked="OnDeleteSwipe" />
+                                           Command="{Binding BindingContext.DeleteItemCommand, Source={x:Reference EditListPage}}"
+                                           CommandParameter="{Binding .}" />
                             </SwipeItems>
                         </SwipeView.RightItems>
 
