@@ -23,7 +23,7 @@ public partial class HomePage : ContentPage
     private async void OnMiniApp1Clicked(object sender, EventArgs e)
     {
         // Navigates to the Cookbook page (recipes app)
-        await Navigation.PushAsync(new TS.UI.AppPages.CookBookApp.Pages.Cookbook(_userId, _idToken));
+        await Navigation.PushAsync(new TS.AppPages.Cookbook(_userId, _idToken));
     }
 
     // Handle click on the second mini app (Shopping List)
@@ -33,6 +33,7 @@ public partial class HomePage : ContentPage
         var listService = _listFactory.Create(_idToken);
 
         // Navigates to the Shopping List page, passing user info and service
-        await Navigation.PushAsync(new TS.AppPages.ShoppingListApp.ShoppingList(_userId, listService));
+        await Navigation.PushAsync(new ShoppingListApp.ShoppingList(_userId, listService));
+
     }
 }

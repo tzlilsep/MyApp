@@ -45,11 +45,11 @@
                                     </SwipeItems>
                                 </SwipeView.LeftItems>
 
-                                <Border Stroke="{AppThemeBinding Light=#E0E0E0, Dark=#333333}"
+                                <Border Stroke="{AppThemeBinding Light=#AB4E52, Dark=#333333}"
                                         StrokeThickness="1"
                                         Padding="10"
                                         Margin="4"
-                                        BackgroundColor="{AppThemeBinding Light=#F7F7F7, Dark=#262626}"
+                                        BackgroundColor="{AppThemeBinding Light=#F7E7CE, Dark=#262626}"
                                         HorizontalOptions="Fill"
                                         VerticalOptions="Start"
                                         HeightRequest="160">
@@ -124,7 +124,7 @@
                     FontSize="32"
                     CornerRadius="32"
                     Command="{Binding AddListCommand}"
-                    BackgroundColor="{AppThemeBinding Light=#3EB489, Dark=#2E7D32}"
+                    BackgroundColor="{AppThemeBinding Light=#AB4E52, Dark=#2E7D32}"
                     Shadow="5,5,5,Grey"
                     TextColor="White"
                     SemanticProperties.Hint="הוסף רשימה חדשה" />

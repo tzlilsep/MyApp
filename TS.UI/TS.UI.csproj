@@ -84,6 +84,9 @@
 	  <MauiXaml Update="AppPages\CookbookApp\Pages\Cookbook.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <MauiXaml Update="AppPages\CookbookApp\Pages\MyCookbook.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	</ItemGroup>
 
 </Project>

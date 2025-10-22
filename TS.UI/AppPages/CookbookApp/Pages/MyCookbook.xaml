@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    x:Class="TS.AppPages.MyCookbook"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls"
+    BackgroundColor="Transparent"
+    FlowDirection="RightToLeft">
+
+    <ContentView.Resources>
+        <x:Double x:Key="CardCorner">14</x:Double>
+    </ContentView.Resources>
+
+    <ScrollView>
+        <FlexLayout Wrap="Wrap"
+                    Direction="Row"
+                    FlowDirection="RightToLeft"
+                    JustifyContent="Start"
+                    AlignItems="Start"
+                    AlignContent="Start"
+                    Padding="20,12,20,96"
+                    BindableLayout.ItemsSource="{Binding Recipes}">
+            <BindableLayout.ItemTemplate>
+                <DataTemplate>
+                    <ContentView FlexLayout.Basis="50%" Padding="6">
+                        <Grid>
+                            <Border StrokeThickness="0"
+                                    BackgroundColor="Transparent"
+                                    HeightRequest="180">
+                                <Border.StrokeShape>
+                                    <shapes:RoundRectangle CornerRadius="{StaticResource CardCorner}" />
+                                </Border.StrokeShape>
+
+                                <!-- Stack layers: image + overlay (gradient + text) -->
+                                <Grid>
+                                    <!-- image background -->
+                                    <Image Source="{Binding ImageUrl}"
+                                           Aspect="AspectFill"
+                                           HorizontalOptions="Fill"
+                                           VerticalOptions="Fill" />
+
+                                    <!-- overlay -->
+                                    <Grid VerticalOptions="FillAndExpand">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="*" />
+                                            <RowDefinition Height="Auto" />
+                                        </Grid.RowDefinitions>
+
+                                        <!-- gradient only on bottom (slightly lighter) -->
+                                        <BoxView Grid.Row="0"
+                                                 VerticalOptions="End"
+                                                 HeightRequest="55">
+                                            <BoxView.Background>
+                                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                    <GradientStop Color="#00000000" Offset="0.0" />
+                                                    <GradientStop Color="#99000000" Offset="0.4" />
+                                                    <GradientStop Color="#CC000000" Offset="1.0" />
+                                                </LinearGradientBrush>
+                                            </BoxView.Background>
+                                        </BoxView>
+
+                                        <!-- text sits over the gradient -->
+                                        <Grid Grid.Row="0"
+                                              Padding="10"
+                                              VerticalOptions="End"
+                                              RowDefinitions="Auto"
+                                              ColumnDefinitions="*,Auto">
+                                            <VerticalStackLayout Spacing="2" Grid.Column="0">
+                                                <Label Text="{Binding Title}"
+                                                       FontSize="18"
+                                                       FontAttributes="Bold"
+                                                       TextColor="White"
+                                                       LineBreakMode="TailTruncation"
+                                                       MaxLines="1" />
+
+                                                <!-- one-line times, white, RTL, truncate from end -->
+                                                <Label LineBreakMode="TailTruncation"
+                                                       MaxLines="1"
+                                                       FontSize="12"
+                                                       HorizontalTextAlignment="Start"
+                                                       FlowDirection="RightToLeft">
+                                                    <Label.FormattedText>
+                                                        <FormattedString>
+                                                            <Span Text="הכנה " TextColor="White"/>
+                                                            <Span Text="{Binding PrepMinutes}" TextColor="White"/>
+                                                            <Span Text=" דק׳ | " TextColor="White"/>
+                                                            <Span Text="סה&quot;כ " TextColor="White"/>
+                                                            <Span Text="{Binding TotalMinutes}" TextColor="White"/>
+                                                            <Span Text=" דק׳" TextColor="White"/>
+                                                        </FormattedString>
+                                                    </Label.FormattedText>
+                                                </Label>
+                                            </VerticalStackLayout>
+                                        </Grid>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                        </Grid>
+                    </ContentView>
+                </DataTemplate>
+            </BindableLayout.ItemTemplate>
+        </FlexLayout>
+    </ScrollView>
+</ContentView>
