@@ -1,12 +1,26 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<ContentPage x:Class="TS.AppPages.Cookbook" xmlns="http://schemas.microsoft.com/dotnet/2021/maui" xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls" Title="ספר המתכונים שלי" FlowDirection="RightToLeft" BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#111111}">
+<ContentPage
+    x:Class="TS.AppPages.Cookbook"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls"
+    Title="ספר המתכונים שלי"
+    FlowDirection="RightToLeft"
+    BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#111111}">
+
     <Grid>
+
         <!-- Swipeable area (hosted by code-behind) -->
         <Grid Grid.Row="1">
-            <CarouselView x:Name="RootCarousel" IsSwipeEnabled="True" FlowDirection="LeftToRight" IndicatorView="{x:Reference carouselIndicators}">
+            <CarouselView x:Name="RootCarousel"
+                          IsSwipeEnabled="True"
+                          FlowDirection="LeftToRight"
+
+                          IndicatorView="{x:Reference carouselIndicators}">
                 <CarouselView.ItemsLayout>
                     <LinearItemsLayout Orientation="Horizontal" ItemSpacing="0"/>
                 </CarouselView.ItemsLayout>
+
                 <CarouselView.ItemTemplate>
                     <DataTemplate>
                         <ContentPresenter Content="{Binding .}" />
@@ -14,20 +28,55 @@
                 </CarouselView.ItemTemplate>
             </CarouselView>
         </Grid>
+
         <!-- Bottom bar -->
-        <Grid Grid.RowSpan="2" Padding="14" HorizontalOptions="Fill" VerticalOptions="End">
-            <Border StrokeThickness="0" BackgroundColor="{AppThemeBinding Light=#F7E7CE, Dark=#1E1E1ECC}" Padding="10">
+        <Grid Grid.RowSpan="2"
+              Padding="14"
+              HorizontalOptions="Fill"
+              VerticalOptions="End">
+            <Border StrokeThickness="0"
+                    BackgroundColor="{AppThemeBinding Light=#F7E7CE, Dark=#1E1E1ECC}"
+                    Padding="10">
                 <Border.StrokeShape>
                     <shapes:RoundRectangle CornerRadius="18"/>
                 </Border.StrokeShape>
+
                 <!-- סרגל נגלל אופקית -->
-                <ScrollView x:Name="BottomScroll" Orientation="Horizontal" FlowDirection="LeftToRight" HorizontalScrollBarVisibility="Never" VerticalScrollBarVisibility="Never">
-                    <StackLayout Orientation="Horizontal" Spacing="8" HorizontalOptions="Center" Padding="0">
-                        <Button x:Name="BtnTabMore" Text="בהמשך" CornerRadius="12" Clicked="OnTabMoreClicked" />
-                        <Button x:Name="BtnTabTools" Text="כלים" CornerRadius="12" Clicked="OnTabToolsClicked" />
-                        <Button x:Name="BtnTabSearch" Text="חפש מתכונים" CornerRadius="12" Clicked="OnTabSearchClicked" />
-                        <Button x:Name="BtnTabMyRecipes" Text="המתכונים שלי" CornerRadius="12" Clicked="OnTabMyRecipesClicked" />
-                        <Button x:Name="BtnTabAddRecipe" Text="הוסף מתכון" CornerRadius="12" Clicked="OnTabAddRecipeClicked" />
+                <ScrollView x:Name="BottomScroll"
+                            Orientation="Horizontal"
+                            FlowDirection="LeftToRight"
+                            HorizontalScrollBarVisibility="Never"
+                            VerticalScrollBarVisibility="Never">
+                    <StackLayout Orientation="Horizontal"
+                                 Spacing="8"
+                                 HorizontalOptions="Center"
+                                 Padding="0">
+
+                        <Button x:Name="BtnTabMore"
+                                Text="בהמשך"
+                                CornerRadius="12"
+                                Clicked="OnTabMoreClicked" />
+
+                        <Button x:Name="BtnTabTools"
+                                Text="כלים"
+                                CornerRadius="12"
+                                Clicked="OnTabToolsClicked" />
+
+                        <Button x:Name="BtnTabSearch"
+                                Text="חפש מתכונים"
+                                CornerRadius="12"
+                                Clicked="OnTabSearchClicked" />
+
+                        <Button x:Name="BtnTabMyRecipes"
+                                Text="המתכונים שלי"
+                                CornerRadius="12"
+                                Clicked="OnTabMyRecipesClicked" />
+
+                        <Button x:Name="BtnTabAddRecipe"
+                                Text="הוסף מתכון"
+                                CornerRadius="12"
+                                Clicked="OnTabAddRecipeClicked" />
+
                     </StackLayout>
                 </ScrollView>
             </Border>
