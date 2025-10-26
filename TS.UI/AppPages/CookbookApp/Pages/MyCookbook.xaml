@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentView
     x:Class="TS.AppPages.MyCookbook"
+    x:Name="RootContent"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:shapes="clr-namespace:Microsoft.Maui.Controls.Shapes;assembly=Microsoft.Maui.Controls"
@@ -40,7 +41,14 @@
                                            VerticalOptions="Fill" />
 
                                     <!-- overlay -->
-                                    <Grid VerticalOptions="FillAndExpand">
+                                    <Grid VerticalOptions="Fill">
+                                        <!-- 👇 כאן הוספנו אפשרות ללחיצה על כרטיס -->
+                                        <Grid.GestureRecognizers>
+                                            <TapGestureRecognizer
+                                                Command="{Binding OpenRecipeCommand, Source={x:Reference RootContent}}"                                                
+                                                CommandParameter="{Binding .}" />
+                                        </Grid.GestureRecognizers>
+
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="*" />
                                             <RowDefinition Height="Auto" />

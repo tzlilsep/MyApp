@@ -13,9 +13,9 @@
         <!-- Swipeable area (hosted by code-behind) -->
         <Grid Grid.Row="1">
             <CarouselView x:Name="RootCarousel"
-                          IsSwipeEnabled="True"
+                          IsSwipeEnabled="False"
                           FlowDirection="LeftToRight"
-
+   
                           IndicatorView="{x:Reference carouselIndicators}">
                 <CarouselView.ItemsLayout>
                     <LinearItemsLayout Orientation="Horizontal" ItemSpacing="0"/>
@@ -52,16 +52,6 @@
                                  HorizontalOptions="Center"
                                  Padding="0">
 
-                        <Button x:Name="BtnTabMore"
-                                Text="בהמשך"
-                                CornerRadius="12"
-                                Clicked="OnTabMoreClicked" />
-
-                        <Button x:Name="BtnTabTools"
-                                Text="כלים"
-                                CornerRadius="12"
-                                Clicked="OnTabToolsClicked" />
-
                         <Button x:Name="BtnTabSearch"
                                 Text="חפש מתכונים"
                                 CornerRadius="12"
@@ -73,7 +63,7 @@
                                 Clicked="OnTabMyRecipesClicked" />
 
                         <Button x:Name="BtnTabAddRecipe"
-                                Text="הוסף מתכון"
+                                Text="הוספת מתכון"
                                 CornerRadius="12"
                                 Clicked="OnTabAddRecipeClicked" />
 

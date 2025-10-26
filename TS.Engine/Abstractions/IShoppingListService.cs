@@ -14,5 +14,12 @@ namespace TS.Engine.Abstractions
         Task<ShoppingListDto> LoadAsync(string userId, string listId);
 
         Task SaveAsync(ShoppingListDto list);
+
+
+    }
+    public interface IShoppingListServiceFactory
+    {
+        IShoppingListService Create(string idToken);
     }
 }
+
